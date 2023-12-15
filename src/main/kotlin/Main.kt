@@ -1,8 +1,13 @@
 package com.ant00000ny
 
 import java.awt.Color
+import java.awt.Font
+import java.awt.Graphics2D
+import java.awt.RenderingHints
+import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
+import javax.swing.JFrame
 
 
 fun main() {
@@ -25,7 +30,7 @@ private fun getPixels(
 ): Array<Array<AsciiPixel>> {
     val bufferedImage = image
         .let { ImageIO.read(it) }
-        .let { resizeImage(it, outputWidth, outputHeight) }
+        .let { rescaleImage(it, outputWidth, outputHeight) }
 
     // init array
     val matrix = Array(outputWidth) {
@@ -48,15 +53,62 @@ private fun getPixels(
     return matrix
 }
 
+fun rescaleImage(
+    originalImage: BufferedImage,
+    targetWidth: Int,
+    targetHeight: Int,
+): BufferedImage {
+    return BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB)
+        .also {
+            it.createGraphics()
+                .apply {
+                    drawImage(originalImage, 0, 0, targetWidth, targetHeight, null)
+                    dispose()
+                }
+        }
+}
+
 private fun printAscii(
     matrix: Array<Array<AsciiPixel>>
 ) {
     for (y in 0..<matrix[0].size) {
         for (x in 0..<matrix.size) {
-            print(matrix[x][y].char)
+            print(matrix[x][y].toConsoleChar())
             print(' ')
         }
         println()
+    }
+}
+
+private fun paintAscii(
+    matrix: Array<Array<AsciiPixel>>,
+) {
+
+
+    JFrame().apply {
+        setSize(1600, 900)
+        isVisible = true
+        defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+        add(object :
+            javax.swing.JPanel() {
+            override fun paint(
+                g: java.awt.Graphics,
+            ) {
+                (g as Graphics2D)
+                    .run {
+                        setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+                        font = Font("Serif", Font.PLAIN, 96);
+                        TODO()
+                    }
+
+                for (y in 0..<matrix[0].size) {
+                    for (x in 0..<matrix.size) {
+                        g.color = matrix[x][y].color
+                        g.drawString(matrix[x][y].char.toString(), x * 10, y * 10)
+                    }
+                }
+            }
+        })
     }
 }
 
