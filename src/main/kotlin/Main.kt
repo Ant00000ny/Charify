@@ -1,5 +1,4 @@
 import java.nio.file.Paths
-import java.time.Duration
 
 fun main(
     args: Array<String>,
@@ -10,7 +9,7 @@ fun main(
         .toFile()
         .also { require(it.exists()) { throw IllegalArgumentException("File does not exist") } }
 
-    val frameInterval = args.getOrElse(1) { "6" }
+    val frameInterval = args.getOrElse(1) { "4" }
         .toInt()
     val durationMillis = args.getOrElse(2) { "100" }
         .toLong()
@@ -21,5 +20,5 @@ fun main(
         videoFile,
         frameInterval,
         size
-    ).printToWindow(Duration.ofMillis(durationMillis))
+    ).saveFrameImages()
 }

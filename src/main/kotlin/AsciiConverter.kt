@@ -1,13 +1,15 @@
 import java.awt.Color
+import java.awt.Dimension
 import java.awt.Font
+import java.awt.image.BufferedImage
 import java.io.File
+import java.nio.file.Path
 import java.time.Duration
-import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import javax.swing.JFrame
+import java.util.concurrent.atomic.AtomicInteger
+import javax.imageio.ImageIO
 import javax.swing.JLabel
+
 
 class AsciiConverter(
     videoFile: File,
@@ -15,6 +17,7 @@ class AsciiConverter(
     private val size: Int,
 ) {
     private val videoFrameExtractor: VideoFrameExtractor = VideoFrameExtractor(videoFile, frameInterval)
+    private var count = AtomicInteger(0);
 
     fun printToConsole(
         interval: Duration,
@@ -27,65 +30,50 @@ class AsciiConverter(
         }
     }
 
-    fun printToWindow(
-        interval: Duration,
+    fun saveFrameImages(
+        targetDirPath: Path = USER_DIR.resolve("images"),
     ) {
-        val jLabelQueue = ArrayBlockingQueue<JLabel>(1000)
-        val executor = Executors.newFixedThreadPool(
-            Runtime.getRuntime()
-                .availableProcessors() - 2
-        )
+        while (videoFrameExtractor.hasNextFrame()) {
+            val asciiString = videoFrameExtractor.nextFrame()
+                .getAsciiString(size, true)
 
-        CompletableFuture.runAsync(
-            {
-                while (videoFrameExtractor.hasNextFrame()) {
-                    val asciiString = videoFrameExtractor.nextFrame()
-                        .getAsciiString(size, true)
+            CompletableFuture.supplyAsync {
+                val thisCount = count.getAndIncrement()
+                println("Rendering image $thisCount")
 
-                    val jLabel = JLabel().apply {
-                        text = asciiString
-                        font = Font("Hack Nerd Font MONO", Font.BOLD, 12)
-                        background = Color.black
-                        isOpaque = true;
+                val jLabel = JLabel().apply {
+                    text = asciiString
+                    font = Font("Hack Nerd Font MONO", Font.BOLD, 24)
+                    background = Color.black
+                    isOpaque = true;
+                }
+
+                val renderedImage = BufferedImage(2560, 1664, BufferedImage.TYPE_INT_RGB)
+                    .also {
+                        jLabel.apply {
+                            size = Dimension(2560, 1664)
+                            print(it.createGraphics())
+                        }
                     }
 
-                    jLabelQueue.offer(jLabel)
-                }
-            },
-            executor
-        )
-
-        val jFrame = JFrame().apply {
-            defaultCloseOperation = JFrame.EXIT_ON_CLOSE
-            isVisible = true
-        }
-        while (true) {
-            jFrame.apply {
-                components.filterIsInstance<JLabel>()
-                    .forEach { remove(it) }
-                add(jLabelQueue.poll(60, TimeUnit.SECONDS))
-                pack()
+                println("Writing image $thisCount")
+                renderedImage
+                    .let {
+                        ImageIO.write(
+                            it,
+                            "png",
+                            targetDirPath
+                                .resolve((thisCount).toString() + ".png")
+                                .toFile()
+                                .apply {
+                                    if (!exists()) {
+                                        mkdirs()
+                                        createNewFile()
+                                    }
+                                }
+                        )
+                    }
             }
         }
-
-
-        //        val jFrame = JFrame().apply {
-        //            defaultCloseOperation = JFrame.EXIT_ON_CLOSE
-        //        }
-        //        CompletableFuture.runAsync(
-        //            {
-        //                while (jLabelQueue.isNotEmpty() || videoFrameExtractor.hasNextFrame()) {
-        //                    val jLabel = jLabelQueue.poll(1000, TimeUnit.SECONDS)
-        //                    jFrame.apply {
-        //                        removeAll()
-        //                        add(jLabel)
-        //                        pack()
-        //                        isVisible = true
-        //                    }
-        //                    Thread.sleep(interval.toMillis())
-        //                }
-        //            },
-        //            executor
-        //        )
     }
 }

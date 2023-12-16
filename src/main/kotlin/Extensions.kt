@@ -1,6 +1,5 @@
 import java.nio.file.Paths
-import kotlin.math.pow
-import kotlin.math.sqrt
+import java.util.concurrent.Executors
 
 operator fun Pair<Int, Int>.times(
     x: Double,
@@ -44,4 +43,9 @@ val colorMap = mapOf(
     Triple(0, 128, 128) to "\u001B[38;5;30m",
     // dark gray
     Triple(128, 128, 128) to "\u001B[38;5;242m",
+)
+
+val executor = Executors.newFixedThreadPool(
+    Runtime.getRuntime()
+        .availableProcessors() - 2
 )
