@@ -10,11 +10,11 @@ fun main(
         .toFile()
         .also { require(it.exists()) { throw IllegalArgumentException("File does not exist") } }
 
-    val frameInterval = args.getOrElse(1) { "12" }
+    val frameInterval = args.getOrElse(1) { "6" }
         .toInt()
     val durationMillis = args.getOrElse(2) { "100" }
         .toLong()
-    val size = args.getOrElse(3) { "30" }
+    val size = args.getOrElse(3) { "50" }
         .toInt()
 
     AsciiConverter(
