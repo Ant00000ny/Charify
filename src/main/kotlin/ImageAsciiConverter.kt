@@ -1,9 +1,12 @@
 import java.awt.Color
 import java.awt.image.BufferedImage
 import kotlin.math.min
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 fun BufferedImage.getAsciiString(
     size: Int,
+    useHTML: Boolean = false,
 ): String {
     val (outputHeight, outputWidth) = Pair(this.height, this.width) * (size.toDouble() / min(this.height, this.width))
     val pixelMatrix = getPixels(outputWidth, outputHeight, this)
@@ -11,13 +14,14 @@ fun BufferedImage.getAsciiString(
     return StringBuilder().apply {
         for (y in 0..<pixelMatrix[0].size) {
             for (x in 0..<pixelMatrix.size) {
-                append(pixelMatrix[x][y].toConsoleChar())
-                append(' ')
+                append(pixelMatrix[x][y].let { if (useHTML) it.toHTMLChar() else it.toConsoleChar() })
+                append(if (useHTML) "&nbsp;" else ' ')
             }
-            appendLine()
+            if (useHTML) append("<br/>") else appendLine()
         }
     }
         .toString()
+        .let { if (useHTML) "<html>$it</html>" else it }
 }
 
 private fun getPixels(
@@ -47,7 +51,7 @@ private fun getPixels(
     return matrix
 }
 
-fun rescaleImage(
+private fun rescaleImage(
     originalImage: BufferedImage,
     targetWidth: Int,
     targetHeight: Int,
@@ -65,4 +69,27 @@ fun rescaleImage(
 data class AsciiPixel(
     val color: Color,
     val char: Char,
-)
+) {
+    fun toConsoleChar(): String {
+        val nearestConsoleColor = colorMap
+            .map { (colorTriple, consoleColor) ->
+                consoleColor to sqrt(
+                    (colorTriple.first - color.red).toDouble()
+                        .pow(2.0) +
+                            (colorTriple.second - color.green).toDouble()
+                                .pow(2.0) +
+                            (colorTriple.third - color.blue).toDouble()
+                                .pow(2.0)
+                )
+            }
+            .minBy { it.second }
+            .first
+
+        return "$nearestConsoleColor$char$ANSI_RESET"
+    }
+
+    fun toHTMLChar(): String {
+        return "<font color=\"rgb(${color.red}, ${color.green}, ${color.blue})\">$char</font>"
+    }
+
+}

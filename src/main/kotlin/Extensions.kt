@@ -45,21 +45,3 @@ val colorMap = mapOf(
     // dark gray
     Triple(128, 128, 128) to "\u001B[38;5;242m",
 )
-
-fun AsciiPixel.toConsoleChar(): String {
-    val nearestConsoleColor = colorMap
-        .map { (colorTriple, consoleColor) ->
-            consoleColor to sqrt(
-                (colorTriple.first - color.red).toDouble()
-                    .pow(2.0) +
-                        (colorTriple.second - color.green).toDouble()
-                            .pow(2.0) +
-                        (colorTriple.third - color.blue).toDouble()
-                            .pow(2.0)
-            )
-        }
-        .minBy { it.second }
-        .first
-
-    return "$nearestConsoleColor$char$ANSI_RESET"
-}

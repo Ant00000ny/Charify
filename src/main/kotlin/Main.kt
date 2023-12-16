@@ -14,12 +14,12 @@ fun main(
         .toInt()
     val durationMillis = args.getOrElse(2) { "100" }
         .toLong()
-    val size = args.getOrElse(3) { "50" }
+    val size = args.getOrElse(3) { "30" }
         .toInt()
 
     AsciiConverter(
         videoFile,
         frameInterval,
         size
-    ).printToConsole(Duration.ofMillis(durationMillis))
+    ).printToWindow(Duration.ofMillis(durationMillis))
 }
