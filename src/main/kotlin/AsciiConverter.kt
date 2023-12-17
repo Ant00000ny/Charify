@@ -1,11 +1,9 @@
 import java.awt.Color
 import java.awt.Dimension
-import java.awt.Font
 import java.awt.image.BufferedImage
 import java.io.File
 import java.nio.file.Path
 import java.time.Duration
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicInteger
 import javax.imageio.ImageIO
 import javax.swing.JLabel
@@ -33,17 +31,19 @@ class AsciiConverter(
     fun saveFrameImages(
         targetDirPath: Path = USER_DIR.resolve("images"),
     ) {
-        while (videoFrameExtractor.hasNextFrame()) {
-            val asciiString = videoFrameExtractor.nextFrame()
-                .getAsciiString(size, true)
 
-            CompletableFuture.supplyAsync {
+        while (videoFrameExtractor.hasNextFrame()) {
+            val frame = videoFrameExtractor.nextFrame()
+            val asciiString = frame.getAsciiString(size, true)
+
+            //            CompletableFuture.supplyAsync(
+            //                {
                 val thisCount = count.getAndIncrement()
                 println("Rendering image $thisCount")
 
                 val jLabel = JLabel().apply {
                     text = asciiString
-                    font = Font("Hack Nerd Font MONO", Font.BOLD, 24)
+                    font = hackNerdMonoFont
                     background = Color.black
                     isOpaque = true;
                 }
@@ -73,7 +73,9 @@ class AsciiConverter(
                                 }
                         )
                     }
-            }
+            //                },
+            //                executor
+            //            )
         }
     }
 }

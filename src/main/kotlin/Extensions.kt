@@ -1,3 +1,4 @@
+import java.awt.Font
 import java.nio.file.Paths
 import java.util.concurrent.Executors
 
@@ -15,7 +16,7 @@ val USER_DIR = System.getProperty("user.dir")
     .let { Paths.get(it) }
     ?: throw Exception("user.dir is null")
 
-val asciiChars = "◙◘■▩●▦▣◚◛◕▨▧◉▤◐◒▮◍◑▼▪◤▬◗◭◖◈◎◮◊◫▰◄◯□▯▷▫▽◹△◁▸▭◅▵◌▱▹▿".reversed()
+val asciiChars = "◙◘■▩●▦▣◚◛◕▨▧◉▤◐◒▮◍◑▼▪◤▬◗◭◖◈◎◮".reversed()
 
 
 const val ANSI_RESET = "\u001B[0m"
@@ -45,7 +46,10 @@ val colorMap = mapOf(
     Triple(128, 128, 128) to "\u001B[38;5;242m",
 )
 
-val executor = Executors.newFixedThreadPool(
-    Runtime.getRuntime()
-        .availableProcessors() - 2
-)
+//val executor = Executors.newFixedThreadPool(
+//    Runtime.getRuntime()
+//        .availableProcessors() - 2
+//)
+
+// https://github.com/ryanoasis/nerd-fonts
+val hackNerdMonoFont = Font("Hack Nerd Font MONO", Font.BOLD, 24)
